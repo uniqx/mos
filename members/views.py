@@ -171,11 +171,19 @@ def members_sc8r_list(request):
     count = len(members_with_privs)
 
     ids = [m.contactinfo_set.all()[0].key_id for m in members_with_privs]
-    ids = [str(''.join(id.split('-'))) for id in ids]
-    ids = [id.decode('hex') for id in ids]
+    bin_ids = [str(''.join(id.split('-'))).decode('hex') for id in ids]
 
-    result = struct.pack('!4sLH' + '7s'*count, magic, ts, count, *ids)
-    return HttpResponse(result, mimetype='text/plain')
+    if request.GET.get('e') in ["jason", "j"]:
+        result = {
+            'timestamp': ts,
+            'count': count,
+            'ids': [str(id) for id in ids],
+        }
+        # this incidentally conforms to json
+        return HttpResponse(repr(result), mimetype='text/plain')
+    else:
+        result = struct.pack('!4sLH' + '7s'*count, magic, ts, count, *bin_ids)
+        return HttpResponse(result, mimetype='application/octet-stream')
 
 def members_update_userpic(request, user_username):
     if not request.user.username == user_username:
