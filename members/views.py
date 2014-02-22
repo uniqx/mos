@@ -1,5 +1,6 @@
 __version__ = "$Revision$"
 
+import struct
 from datetime import *
 
 from dateutil.rrule import *
@@ -13,6 +14,9 @@ from mos.members.forms import UserEmailForm, UserNameForm, UserAdressForm,\
 from mos.members.models import *
 from mos.members.util import *
 from django.contrib.auth import authenticate
+
+# FIXME: time (from datetime) is already imported somewhere above
+from time import time
 
 
 @login_required
@@ -142,6 +146,36 @@ def members_lazzzor_list(request):
                             m.contactinfo_set.all()[0].lazzzor_rate)
                   for m in members_with_privs]
     return HttpResponse('\r\n'.join(result), mimetype='text/plain')
+
+def members_sc8r_list(request):
+    """
+    Returns key ids of members with scanner door access.
+
+    struct __attribute__((__packed__)) {
+        uint32_t magic;     // 0x73633872 ("sc8er")
+        uint32_t timestamp; // seconds since epoch
+        uint16_t count;
+        struct {
+                uint8_t family;
+                uint16_t serial_high;
+                uint16_t serial_mid;
+                uint16_t serial_low;
+        } ibuttons[];
+    };
+    """
+
+    members_with_privs = get_active_and_future_members().filter(
+                             contactinfo__has_sc8r_access=True)
+    magic = 'sc8r'
+    ts = int(time())
+    count = len(members_with_privs)
+
+    ids = [m.contactinfo_set.all()[0].key_id for m in members_with_privs]
+    ids = [str(''.join(id.split('-'))) for id in ids]
+    ids = [id.decode('hex') for id in ids]
+
+    result = struct.pack('!4sLH' + '7s'*count, magic, ts, count, *ids)
+    return HttpResponse(result, mimetype='text/plain')
 
 def members_update_userpic(request, user_username):
     if not request.user.username == user_username:
