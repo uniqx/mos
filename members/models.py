@@ -57,6 +57,7 @@ class ContactInfo(models.Model):
     last_email_ok = models.NullBooleanField(null=True)
     has_active_key = models.BooleanField(null=False)
     has_lazzzor_privileges = models.BooleanField(null=False)
+    has_sc8r_access = models.BooleanField(null=False)
     key_id = models.CharField(max_length=100, blank=True, null=True)
 
     lazzzor_rate = models.DecimalField(choices=LAZZZOR_RATE_CHOICES, default='1.00',
