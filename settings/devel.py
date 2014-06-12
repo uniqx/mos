@@ -3,6 +3,7 @@ from common import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DATABASES = {
     'default': {
@@ -15,7 +16,6 @@ DATABASES = {
     }
 }
 
-LOGGING['loggers']['django']['handlers'] = ['file', ]
-LOGGING['loggers']['django']['level'] = 'INFO'
-LOGGING['loggers']['django.request']['handlers'] = ['file', ]
-LOGGING['loggers']['django.request']['level'] = 'INFO'
+MEDIA_ROOT = PROJECT_DIR.child("media")
+
+HOS_SEPA_CREDITOR_ID = 'AT29HXR00000037632'

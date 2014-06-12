@@ -49,7 +49,7 @@ STATIC_URL = "/static/"
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    PROJECT_DIR.child("metalab", "media"),
+    PROJECT_DIR.child("static"),
 )
 
 # List of finder classes that know how to find static files in
@@ -59,10 +59,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = PROJECT_DIR.child("metalab", "media")
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -96,7 +92,7 @@ TEMPLATE_DIRS = (
     # or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    PROJECT_DIR.child("metalab", "templates"),
+    PROJECT_DIR.child("templates"),
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -125,10 +121,9 @@ INSTALLED_APPS = (
     'mos.projects',
     'mos.cal',
     'mos.members',
-    'mos.rss',
+    'mos.sources',
     'mos.announce',
     'mos.core',
-    'mos.scrooge',
 )
 
 
@@ -136,77 +131,22 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
 
 #---  Custom Options ----------------------------------------------------------
-
-
 HOS_URL_PREFIX = '/'
 HOS_NAME = 'Metalab OS'
 HOS_HOME_EVENT_NUM = 5
 HOS_WIKI_URL = '/wiki/'
 HOS_ANNOUNCE_FROM = 'core@metalab.at'
-HOS_WIKI_CHANGE_URL = ''
+HOS_SEPA_CREDITOR_ID = 'AT12ZZZ00000000001'
+
+MOS_WIKI_CHANGE_URL = 'https://metalab.at/wiki/index.php?title=Spezial:Letzte_%C3%84nderungen&feed=atom'
+MOS_WIKI_KEEP = 5
 
 # ----------------- Style ---------------------
 HOS_CUSTOM_STYLE = ''  # name of the custom style, blank for default
 HOS_METASENSE = True
-HOS_LOCATION_GALLERY = True
 HOS_MEMBER_GALLERY = True
 HOS_CALENDAR = True
 HOS_OPENLAB = True
 HOS_INTRODUCTION = True
 HOS_PROJECTS = True
 HOS_RECENT_CHANGES = True
-
-HOS_WIKI_CHANGE_URL = 'https://metalab.at/wiki/index.php?title=Spezial:Letzte_%C3%84nderungen&feed=atom'
-
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(name) %(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(name) %(message)s'
-        },
-    },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        }
-    },
-    'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'logging.NullHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'verbose',
-            'filename': 'logs/django.log',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['null'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
-}

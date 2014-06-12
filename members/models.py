@@ -24,6 +24,7 @@ class PaymentInfo(models.Model):
     bank_account_iban = models.CharField(max_length=34, blank=True)
     bank_account_bic = models.CharField(max_length=11, blank=True)
     bank_account_mandate_reference = models.CharField(max_length=35, blank=True)
+    bank_account_date_of_signing = models.DateField(null=True, blank=True)
 
     user = models.ForeignKey(User, unique=True)
 
@@ -105,9 +106,11 @@ class ContactInfo(models.Model):
     def get_date_of_entry(self):
         # FIXME: the order here is wrong, didn't change it since i don't have time to check all implications
         #                    sf - 2010 07 27
-        mp = MembershipPeriod.objects.filter(user=self.user)\
-            .order_by('-begin')[0]
-        return mp.begin
+        mp = MembershipPeriod.objects.filter(user=self.user).order_by('-begin')
+        if mp:
+            return mp[0].begin
+        else:
+            return None
 
     def get_current_membership_period(self):
         # FIXME: the order here is wrong, didn't change it since i don't have time to check all implications
@@ -200,7 +203,7 @@ class MembershipPeriod(models.Model):
         return u"%s" % self.user.username
 
     def get_duration_in_month(self):
-        if self.end is None:
+        if self.end is None or self.end > datetime.date.today():
             end = datetime.date.today()
         else:
             end = self.end

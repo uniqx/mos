@@ -1,13 +1,13 @@
-__version__ = "$Revision$"
-
 import struct
 from datetime import *
 
 from dateutil.rrule import *
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.conf import settings
 
 from mos.members.forms import UserEmailForm, UserNameForm, UserAdressForm,\
                               UserImageForm, UserInternListForm
@@ -19,7 +19,6 @@ from django.contrib.auth import authenticate
 from time import time
 
 
-@login_required
 def members_history(request):
     history_entry_list = get_list_of_history_entries()
     history_list = []
@@ -31,14 +30,21 @@ def members_history(request):
                               {'list': history_list},
                               context_instance=RequestContext(request))
 
+@csrf_exempt
 def valid_user(request):
-    #tyrsystem
+    # #tyrsystem
+    # I'm no sure what this comment means... "Tuer-System"? I've found entries
+    # in Apache's log file no younger than a year. Probably this is not used
+    # anymore.
     if not request.is_secure():
         raise Http404()
-    user_cache = authenticate(username=request.POST['user'], password=request.POST['pass'])
+    user_cache = authenticate(
+            username=request.POST.get('user'),
+            password=request.POST.get('pass')
+        )
     if user_cache and user_cache.is_active:
         return HttpResponse('OK')
-    return HttpResponse('DeineMudder', status=403)
+    return HttpResponse('FAIL', status=403)
 
 
 def members_details(request, user_username, errors="", update_type=""):
@@ -104,6 +110,10 @@ def members_bankcollection_list(request):
             debt = m.contactinfo_set.all()[0].get_debt_for_month(date.today())
             if debt != 0:
                 pmi = m.paymentinfo_set.all()[0]
+                # on the first debit initiation, set the mandate signing date
+                if not pmi.bank_account_date_of_signing:
+                    pmi.bank_account_date_of_signing = date.today()
+                    pmi.save()
                 ci = m.contactinfo_set.all()[0]
                 collection_records.append([m.first_name, m.last_name,
                                            pmi.bank_account_number,
@@ -115,7 +125,10 @@ def members_bankcollection_list(request):
                                                                 .month),
                                            pmi.bank_account_iban or '',
                                            pmi.bank_account_bic or '',
-                                           pmi.bank_account_mandate_reference or ''
+                                           pmi.bank_account_mandate_reference or '',
+                                           pmi.bank_account_date_of_signing.isoformat(),
+                                           'RCUR', # FIXME: should be "FRST" on initial run
+                                           settings.HOS_SEPA_CREDITOR_ID,
                                            ])
 
         #format as csv and return it
