@@ -9,13 +9,14 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib import admin
+from django.contrib.admin import StackedInline, TabularInline
+from django.contrib.auth.admin import UserAdmin
 from django.utils.encoding import smart_unicode
 
 
 
 class PaymentInfo(models.Model):
-    bank_collection_allowed = models.BooleanField()
+    bank_collection_allowed = models.BooleanField(default=False)
     bank_collection_mode = models.ForeignKey('BankCollectionMode')
     bank_account_owner = models.CharField(max_length=200, blank=True)
     bank_account_number = models.CharField(max_length=20, blank=True)
@@ -26,7 +27,7 @@ class PaymentInfo(models.Model):
     bank_account_mandate_reference = models.CharField(max_length=35, blank=True)
     bank_account_date_of_signing = models.DateField(null=True, blank=True)
 
-    user = models.ForeignKey(User, unique=True)
+    user = models.OneToOneField(User)
 
 
 class ContactInfo(models.Model):
@@ -53,12 +54,12 @@ class ContactInfo(models.Model):
     wiki_name = models.CharField(max_length=50, blank=True, null=True)
     image = models.ImageField(upload_to=get_image_path, blank=True)
 
-    user = models.ForeignKey(User, unique=True)
+    user = models.OneToOneField(User)
 
-    last_email_ok = models.NullBooleanField(null=True)
-    has_active_key = models.BooleanField(null=False)
-    has_lazzzor_privileges = models.BooleanField(null=False)
-    has_sc8r_access = models.BooleanField(null=False)
+    last_email_ok = models.NullBooleanField()
+    has_active_key = models.BooleanField(default=False)
+    has_lazzzor_privileges = models.BooleanField(default=False)
+    has_sc8r_access = models.BooleanField(default=False)
     key_id = models.CharField(max_length=100, blank=True, null=True)
 
     lazzzor_rate = models.DecimalField(choices=LAZZZOR_RATE_CHOICES, default='1.00',
@@ -263,6 +264,10 @@ class PaymentManager(models.Manager):
             except User.DoesNotExist:
                 print line
                 continue
+            except:
+                print "exception on line:"
+                print line
+                raise
 
             sum = line[5]
             try:
@@ -430,23 +435,23 @@ class PaymentMethod(models.Model):
         return u"%s" % self.name
 
 
-class ContactInfoInline(admin.StackedInline):
+class ContactInfoInline(StackedInline):
     model = ContactInfo
     max_num = 1
 
-class PaymentInfoInline(admin.StackedInline):
+class PaymentInfoInline(StackedInline):
     model = PaymentInfo
     max_num = 1
 
-class MembershipPeriodInline(admin.TabularInline):
+class MembershipPeriodInline(TabularInline):
     model = MembershipPeriod
 
-class PaymentInline(admin.TabularInline):
+class PaymentInline(TabularInline):
     model = Payment
     fields=('date', 'amount', 'method')
     ordering=('date',)
 
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(UserAdmin):
     inlines=[ContactInfoInline, PaymentInfoInline, MembershipPeriodInline, PaymentInline]
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active')
     list_filter = ('is_staff', 'is_superuser')
