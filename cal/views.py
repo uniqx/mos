@@ -108,10 +108,10 @@ def display_special_events(request, typ, name):
     try:
         if typ == 'Category':
             des = get_object_or_404(Category, name=name)
-            events = Event.objects.filter(category__name=name)
+            events = Event.objects.filter(category__name=name).prefetch_related('location', 'category')
         elif typ == 'Location':
             des = get_object_or_404(Location, name=name)
-            events = Event.objects.filter(location__name=name)
+            events = Event.objects.filter(location__name=name).prefetch_related('location', 'category')
         else:
             des = None
             events = None
@@ -178,7 +178,8 @@ def update_event(request, new, object_id=None):
 
 
 def event_list(request, number=0):
-    events = Event.future.get_n(long(number) if number != '' else 0)
+    number = long(number) if number != '' else 0
+    events = Event.future.get_n(number).prefetch_related('location', 'category')
 
     if not number:
         events = events.reverse()
@@ -200,6 +201,8 @@ def event_icalendar(request, object_id):
 
 def complete_ical(request, number=0):
     events = Event.future.get_n(long(number) if number != '' else 0)
+    # prefetch related information used in the resulting ical file
+    events = events.prefetch_related('location', 'category', 'created_by')
 
     if not number:
         events = events.reverse()
