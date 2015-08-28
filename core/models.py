@@ -24,6 +24,7 @@ class Location(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200)
     country = models.CharField(max_length=100)
+    acrynym = models.CharField(max_length=5, blank=True)
 
     def __str__(self):
         return self.name

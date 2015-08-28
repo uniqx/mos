@@ -38,7 +38,9 @@ class EventCalendar(HTMLCalendar):
             for event in self.events.exclude(startDate__gt=d1).exclude(endDate__lt=d, endDate__isnull=False).exclude(endDate__isnull=True, startDate__lt=d):
                 body.append('<li>')
                 body.append('<a href="/wiki/%s">' % event.wikiPage)
-                body.append(event.startDate.strftime('%H:%M') + ' ' + esc(event.name))
+                body.append('%s %s' % (event.startDate.strftime('%H:%M'), esc(event.name)))
+                if event.location.acrynym:
+                    body.append(' [%s]' % event.location.acrynym)
                 body.append('</a>')
                 if self.admin:
                     body.append(u'<a href="%s" class="edit">/e</a>' % event.get_absolute_url())
