@@ -1,3 +1,4 @@
+setuptools
 ipython
 flake8
 autopep8
